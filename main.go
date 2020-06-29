@@ -6,7 +6,7 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gorilla/mux"
-	_tdeliv"github.com/vivaldy22/cleanEnigmaSchool/teacher/delivery"
+	_tdeliv "github.com/vivaldy22/cleanEnigmaSchool/teacher/delivery"
 	_trepo "github.com/vivaldy22/cleanEnigmaSchool/teacher/repository"
 	_tusecase "github.com/vivaldy22/cleanEnigmaSchool/teacher/usecase"
 	"github.com/vivaldy22/cleanEnigmaSchool/tools"
@@ -32,6 +32,8 @@ func main() {
 	}()
 
 	router := mux.NewRouter()
+	http.Handle("/", router)
+
 	tr := _trepo.NewTeacherRepo(dbConn)
 	tu := _tusecase.NewTeacherUseCase(tr)
 	_tdeliv.NewTeacherHandler(tu, router)

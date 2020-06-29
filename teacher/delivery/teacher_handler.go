@@ -24,7 +24,6 @@ func NewTeacherHandler(tu models.TeacherUseCase, router *mux.Router) {
 	router.HandleFunc("/teacher", handler.InsertTeacher).Methods("POST")
 	router.HandleFunc("/teacher", handler.UpdateTeacher).Methods("PUT")
 	router.HandleFunc("/teacher", handler.DeleteTeacher).Methods("DELETE")
-	http.Handle("/", router)
 }
 
 func (t *TeacherHandler) FetchTeachers(w http.ResponseWriter, r *http.Request) {
