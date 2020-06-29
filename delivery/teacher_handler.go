@@ -41,7 +41,7 @@ func (t *TeacherHandler) FetchTeachers(w http.ResponseWriter, r *http.Request) {
 func (t *TeacherHandler) GetTeacherByID(w http.ResponseWriter, r *http.Request) {
 	id := r.URL.Query().Get("id")
 	rawData, err := t.TUseCase.GetByID(id)
-	//resp := response.Response{Msg: "Data Teacher By ID", Data: getByID(db, id)}
+	// resp := response.Response{Msg: "Data Teacher By ID", Data: getByID(db, id)}
 	data, err := json.Marshal(rawData)
 	tools.FatalErr(err)
 	w.Header().Set("content-type", "application/json")
