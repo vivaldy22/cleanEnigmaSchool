@@ -1,4 +1,4 @@
-package repositories
+package repositoriest
 
 import (
 	"database/sql"
@@ -14,7 +14,7 @@ func NewTeacherRepo(db *sql.DB) models.TeacherRepository {
 	return &teacherRepo{db}
 }
 
-func (t teacherRepo) Fetch() ([]*models.Teacher, error){
+func (t teacherRepo) Fetch() ([]*models.Teacher, error) {
 	var teachers []*models.Teacher
 	rows, err := t.DB.Query(`SELECT * FROM teacher`)
 	if err != nil {

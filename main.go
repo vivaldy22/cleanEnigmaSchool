@@ -5,12 +5,19 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"net/http"
+
 	"github.com/gorilla/mux"
+	_stdeliv "github.com/vivaldy22/cleanEnigmaSchool/student/delivery"
+	_strepo "github.com/vivaldy22/cleanEnigmaSchool/student/repository"
+	_stusecase "github.com/vivaldy22/cleanEnigmaSchool/student/usecase"
+	_sudeliv "github.com/vivaldy22/cleanEnigmaSchool/subject/delivery"
+	_surepo "github.com/vivaldy22/cleanEnigmaSchool/subject/repository"
+	_suusecase "github.com/vivaldy22/cleanEnigmaSchool/subject/usecase"
 	_tdeliv "github.com/vivaldy22/cleanEnigmaSchool/teacher/delivery"
 	_trepo "github.com/vivaldy22/cleanEnigmaSchool/teacher/repository"
 	_tusecase "github.com/vivaldy22/cleanEnigmaSchool/teacher/usecase"
 	"github.com/vivaldy22/cleanEnigmaSchool/tools"
-	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -34,9 +41,17 @@ func main() {
 	router := mux.NewRouter()
 	http.Handle("/", router)
 
-	tr := _trepo.NewTeacherRepo(dbConn)
-	tu := _tusecase.NewTeacherUseCase(tr)
-	_tdeliv.NewTeacherHandler(tu, router)
+	tRep := _trepo.NewTeacherRepo(dbConn)
+	tUsc := _tusecase.NewTeacherUseCase(tRep)
+	_tdeliv.NewTeacherHandler(tUsc, router)
+
+	stRep := _strepo.NewStudentRepo(dbConn)
+	stUsc := _stusecase.NewStudentUseCase(stRep)
+	_stdeliv.NewStudentHandler(stUsc, router)
+
+	suRep := _surepo.NewSubjectRepo(dbConn)
+	suUsc := _suusecase.NewSubjectUseCase(suRep)
+	_sudeliv.NewSubjectHandler(suUsc, router)
 
 	fmt.Println("Running on port 3000")
 	err = http.ListenAndServe(":3000", nil)

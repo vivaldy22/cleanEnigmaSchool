@@ -31,21 +31,34 @@ func (t *TeacherHandler) FetchTeachers(w http.ResponseWriter, r *http.Request) {
 	tools.PrintlnErr(err)
 	//var resp = response.Response{Msg: "Data Teacher", Data: getAll(db)}
 	data, err := json.Marshal(rawData)
-	//tools.FatalErr(err)
-	w.Header().Set("content-type", "application/json")
-	w.Write(data)
-	log.Println("Endpoint hit: FetchTeachers")
+	if err != nil {
+		log.Println(err)
+		w.Write([]byte("Error occurred"))
+	} else {
+		w.Header().Set("content-type", "application/json")
+		w.Write(data)
+		log.Println("Endpoint hit: FetchTeachers")
+	}
 }
 
 func (t *TeacherHandler) GetTeacherByID(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := tools.ReadQueryParam("id", r)
 	rawData, err := t.TUseCase.GetByID(id)
-	// resp := response.Response{Msg: "Data Teacher By ID", Data: getByID(db, id)}
-	data, err := json.Marshal(rawData)
-	tools.FatalErr(err)
-	w.Header().Set("content-type", "application/json")
-	w.Write(data)
-	log.Println("Endpoint hit: GetTeacherByID")
+	if err != nil {
+		log.Println(err)
+		w.Write([]byte("Error occurred"))
+	} else {
+		// resp := response.Response{Msg: "Data Teacher By ID", Data: getByID(db, id)}
+		data, err := json.Marshal(rawData)
+		if err != nil {
+			log.Println(err)
+			w.Write([]byte("Error occurred"))
+		} else {
+			w.Header().Set("content-type", "application/json")
+			w.Write(data)
+			log.Println("Endpoint hit: GetTeacherByID")
+		}
+	}
 }
 
 func (t *TeacherHandler) InsertTeacher(w http.ResponseWriter, r *http.Request) {
@@ -58,6 +71,7 @@ func (t *TeacherHandler) InsertTeacher(w http.ResponseWriter, r *http.Request) {
 	}
 	if err != nil {
 		log.Println(err)
+		w.Write([]byte("Error occurred"))
 	} else {
 		log.Println("Insert successful")
 		w.Write([]byte("Insert successful"))
@@ -68,6 +82,7 @@ func (t *TeacherHandler) DeleteTeacher(w http.ResponseWriter, r *http.Request) {
 	err := t.TUseCase.Delete(r.URL.Query().Get("id"))
 	if err != nil {
 		log.Println(err)
+		w.Write([]byte("Error occurred"))
 	} else {
 		log.Println("Delete successful")
 		w.Write([]byte("Delete successful"))
@@ -81,6 +96,7 @@ func (t *TeacherHandler) UpdateTeacher(w http.ResponseWriter, r *http.Request) {
 	err = t.TUseCase.Update(tt)
 	if err != nil {
 		log.Println(err)
+		w.Write([]byte("Error occurred"))
 	} else {
 		log.Println("Update successful")
 		w.Write([]byte("Update successful"))
