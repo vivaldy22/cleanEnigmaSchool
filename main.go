@@ -36,14 +36,6 @@ func main() {
 	tu := usecase.NewTeacherUseCase(tr)
 	delivery.NewTeacherHandler(tu, router)
 
-	//http.HandleFunc("/", index)
-	//http.HandleFunc("/teachers", ac.GetTeacher())
-	//http.HandleFunc("/teacher", ac.TeacherRouter())
-	//http.HandleFunc("/students", ac.GetStudent())
-	//http.HandleFunc("/student", ac.StudentRouter())
-	//http.HandleFunc("/subjects", ac.GetSubject())
-	//http.HandleFunc("/subject", ac.SubjectRouter())
-
 	fmt.Println("Running on port 3000")
 	err = http.ListenAndServe(":3000", nil)
 	tools.FatalErr(err)
