@@ -6,10 +6,10 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/vivaldy22/cleanEnigmaSchool/delivery"
-	repo "github.com/vivaldy22/cleanEnigmaSchool/repositories"
+	_tdeliv"github.com/vivaldy22/cleanEnigmaSchool/teacher/delivery"
+	_trepo "github.com/vivaldy22/cleanEnigmaSchool/teacher/repository"
+	_tusecase "github.com/vivaldy22/cleanEnigmaSchool/teacher/usecase"
 	"github.com/vivaldy22/cleanEnigmaSchool/tools"
-	"github.com/vivaldy22/cleanEnigmaSchool/usecase"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -32,9 +32,9 @@ func main() {
 	}()
 
 	router := mux.NewRouter()
-	tr := repo.NewTeacherRepo(dbConn)
-	tu := usecase.NewTeacherUseCase(tr)
-	delivery.NewTeacherHandler(tu, router)
+	tr := _trepo.NewTeacherRepo(dbConn)
+	tu := _tusecase.NewTeacherUseCase(tr)
+	_tdeliv.NewTeacherHandler(tu, router)
 
 	fmt.Println("Running on port 3000")
 	err = http.ListenAndServe(":3000", nil)
