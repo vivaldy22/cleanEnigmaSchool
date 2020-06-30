@@ -7,7 +7,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
-	"github.com/vivaldy22/cleanEnigmaSchool/tools"
+	error2 "github.com/vivaldy22/cleanEnigmaSchool/tools/errors"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/varMux"
 )
 
 type ResponseError struct {
@@ -29,7 +30,7 @@ func NewSubjectHandler(tu models.SubjectUseCase, router *mux.Router) {
 
 func (s *SubjectHandler) FetchSubjects(w http.ResponseWriter, r *http.Request) {
 	rawData, err := s.SUseCase.Fetch()
-	tools.PrintlnErr(err)
+	error2.PrintlnErr(err)
 	//var resp = response.Response{Msg: "Data Subject", Data: getAll(db)}
 	data, err := json.Marshal(rawData)
 	if err != nil {
@@ -43,7 +44,7 @@ func (s *SubjectHandler) FetchSubjects(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *SubjectHandler) GetSubjectByID(w http.ResponseWriter, r *http.Request) {
-	id := tools.ReadQueryParam("id", r)
+	id := varMux.GetVarsMux("id", r)
 	rawData, err := s.SUseCase.GetByID(id)
 	// resp := response.Response{Msg: "Data Subject By ID", Data: getByID(db, id)}
 	data, err := json.Marshal(rawData)
@@ -60,10 +61,10 @@ func (s *SubjectHandler) GetSubjectByID(w http.ResponseWriter, r *http.Request) 
 func (s *SubjectHandler) InsertSubject(w http.ResponseWriter, r *http.Request) {
 	var sus []models.Subject
 	err := json.NewDecoder(r.Body).Decode(&sus)
-	tools.PrintlnErr(err)
+	error2.PrintlnErr(err)
 	for _, ss := range sus {
 		err := s.SUseCase.Store(ss)
-		tools.PrintlnErr(err)
+		error2.PrintlnErr(err)
 	}
 	if err != nil {
 		log.Println(err)
@@ -88,7 +89,7 @@ func (s *SubjectHandler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
 func (s *SubjectHandler) UpdateSubject(w http.ResponseWriter, r *http.Request) {
 	var sus models.Subject
 	err := json.NewDecoder(r.Body).Decode(&sus)
-	tools.PrintlnErr(err)
+	error2.PrintlnErr(err)
 	err = s.SUseCase.Update(sus)
 	if err != nil {
 		log.Println(err)

@@ -20,7 +20,7 @@ func (t teacherUseCase) Fetch() ([]*models.Teacher, error) {
 	return res, nil
 }
 
-func (t teacherUseCase) GetByID(id string) (models.Teacher, error) {
+func (t teacherUseCase) GetByID(id string) (*models.Teacher, error) {
 	res, err := t.teacherRepo.GetByID(id)
 	if err != nil {
 		return res, err
@@ -28,14 +28,23 @@ func (t teacherUseCase) GetByID(id string) (models.Teacher, error) {
 	return res, nil
 }
 
-func (t teacherUseCase) Store(teacher models.Teacher) error {
-	return t.teacherRepo.Store(teacher)
+func (t teacherUseCase) Store(teacher *models.Teacher) error {
+	if err := t.teacherRepo.Store(teacher); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (t teacherUseCase) Update(teacher models.Teacher) error {
-	return t.teacherRepo.Update(teacher)
+func (t teacherUseCase) Update(id string, teacher *models.Teacher) error {
+	if err := t.teacherRepo.Update(id, teacher); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (t teacherUseCase) Delete(id string) error {
-	return t.teacherRepo.Delete(id)
+	if err := t.teacherRepo.Delete(id); err != nil {
+		return err
+	}
+	return nil
 }

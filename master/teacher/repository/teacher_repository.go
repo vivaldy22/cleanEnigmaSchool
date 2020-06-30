@@ -2,12 +2,13 @@ package repositoriest
 
 import (
 	"database/sql"
+
 	"github.com/google/uuid"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
 )
 
 type teacherRepo struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 func NewTeacherRepo(db *sql.DB) models.TeacherRepository {
@@ -16,7 +17,7 @@ func NewTeacherRepo(db *sql.DB) models.TeacherRepository {
 
 func (t teacherRepo) Fetch() ([]*models.Teacher, error) {
 	var teachers []*models.Teacher
-	rows, err := t.DB.Query(`SELECT * FROM teacher`)
+	rows, err := t.db.Query(`SELECT * FROM teacher`)
 	if err != nil {
 		return nil, err
 	}
@@ -36,17 +37,17 @@ func (t teacherRepo) Fetch() ([]*models.Teacher, error) {
 	return teachers, nil
 }
 
-func (t teacherRepo) GetByID(id string) (models.Teacher, error) {
-	var teacher models.Teacher
-	err := t.DB.QueryRow("SELECT id, first_name, last_name, email FROM teacher WHERE id = ?", id).Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email)
+func (t teacherRepo) GetByID(id string) (*models.Teacher, error) {
+	var teacher = new(models.Teacher)
+	err := t.db.QueryRow("SELECT * FROM teacher WHERE id = ?", id).Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email)
 	if err != nil {
-		return teacher, err
+		return nil, err
 	}
 	return teacher, nil
 }
 
-func (t teacherRepo) Store(teacher models.Teacher) error {
-	tx, err := t.DB.Begin()
+func (t teacherRepo) Store(teacher *models.Teacher) error {
+	tx, err := t.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -65,8 +66,8 @@ func (t teacherRepo) Store(teacher models.Teacher) error {
 	return tx.Commit()
 }
 
-func (t teacherRepo) Update(teacher models.Teacher) error {
-	tx, err := t.DB.Begin()
+func (t teacherRepo) Update(id string, teacher *models.Teacher) error {
+	tx, err := t.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -78,7 +79,7 @@ func (t teacherRepo) Update(teacher models.Teacher) error {
 		return err
 	}
 
-	_, err = stmt.Exec(teacher.FirstName, teacher.LastName, teacher.Email, teacher.ID)
+	_, err = stmt.Exec(teacher.FirstName, teacher.LastName, teacher.Email, id)
 	if err != nil {
 		return tx.Rollback()
 	}
@@ -88,7 +89,7 @@ func (t teacherRepo) Update(teacher models.Teacher) error {
 }
 
 func (t teacherRepo) Delete(id string) error {
-	tx, err := t.DB.Begin()
+	tx, err := t.db.Begin()
 	if err != nil {
 		return err
 	}

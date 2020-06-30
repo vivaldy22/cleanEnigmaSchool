@@ -2,11 +2,13 @@ package delivery
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/vivaldy22/cleanEnigmaSchool/models"
-	"github.com/vivaldy22/cleanEnigmaSchool/tools"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/vivaldy22/cleanEnigmaSchool/models"
+	_error "github.com/vivaldy22/cleanEnigmaSchool/tools/errors"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/varMux"
 )
 
 type ResponseError struct {
@@ -28,7 +30,7 @@ func NewStudentHandler(tu models.StudentUseCase, router *mux.Router) {
 
 func (s *StudentHandler) FetchStudents(w http.ResponseWriter, r *http.Request) {
 	rawData, err := s.StUseCase.Fetch()
-	tools.PrintlnErr(err)
+	_error.PrintlnErr(err)
 	//var resp = response.Response{Msg: "Data Student", Data: getAll(db)}
 	data, err := json.Marshal(rawData)
 	if err != nil {
@@ -42,7 +44,7 @@ func (s *StudentHandler) FetchStudents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *StudentHandler) GetStudentByID(w http.ResponseWriter, r *http.Request) {
-	id := tools.ReadQueryParam("id", r)
+	id := varMux.GetVarsMux("id", r)
 	rawData, err := s.StUseCase.GetByID(id)
 	// resp := response.Response{Msg: "Data Student By ID", Data: getByID(db, id)}
 	data, err := json.Marshal(rawData)
@@ -59,10 +61,10 @@ func (s *StudentHandler) GetStudentByID(w http.ResponseWriter, r *http.Request) 
 func (s *StudentHandler) InsertStudent(w http.ResponseWriter, r *http.Request) {
 	var sts []models.Student
 	err := json.NewDecoder(r.Body).Decode(&sts)
-	tools.PrintlnErr(err)
+	_error.PrintlnErr(err)
 	for _, ss := range sts {
 		err := s.StUseCase.Store(ss)
-		tools.PrintlnErr(err)
+		_error.PrintlnErr(err)
 	}
 	if err != nil {
 		log.Println(err)
@@ -87,7 +89,7 @@ func (s *StudentHandler) DeleteStudent(w http.ResponseWriter, r *http.Request) {
 func (s *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
 	var ss models.Student
 	err := json.NewDecoder(r.Body).Decode(&ss)
-	tools.PrintlnErr(err)
+	_error.PrintlnErr(err)
 	err = s.StUseCase.Update(ss)
 	if err != nil {
 		log.Println(err)

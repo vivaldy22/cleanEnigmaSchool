@@ -1,4 +1,4 @@
-package tools
+package viper
 
 import (
 	"github.com/spf13/viper"

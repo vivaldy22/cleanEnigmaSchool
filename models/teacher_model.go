@@ -9,16 +9,16 @@ type Teacher struct {
 
 type TeacherUseCase interface {
 	Fetch() ([]*Teacher, error)
-	GetByID(string) (Teacher, error)
-	Store(Teacher) error
-	Update(Teacher) error
+	GetByID(string) (*Teacher, error)
+	Store(*Teacher) error
+	Update(string, *Teacher) error
 	Delete(string) error
 }
 
 type TeacherRepository interface {
 	Fetch() ([]*Teacher, error)
-	GetByID(string) (Teacher, error)
-	Store(Teacher) error
-	Update(Teacher) error
+	GetByID(string) (*Teacher, error)
+	Store(*Teacher) error
+	Update(string, *Teacher) error
 	Delete(string) error
 }

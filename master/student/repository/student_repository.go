@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+
 	"github.com/google/uuid"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
 )
