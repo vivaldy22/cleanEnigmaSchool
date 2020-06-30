@@ -7,13 +7,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
-	error2 "github.com/vivaldy22/cleanEnigmaSchool/tools/errors"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/msgJson"
 	"github.com/vivaldy22/cleanEnigmaSchool/tools/varMux"
 )
-
-type ResponseError struct {
-	Message string `json:"message"`
-}
 
 type SubjectHandler struct {
 	SUseCase models.SubjectUseCase
@@ -21,81 +17,102 @@ type SubjectHandler struct {
 
 func NewSubjectHandler(tu models.SubjectUseCase, router *mux.Router) {
 	handler := &SubjectHandler{SUseCase: tu}
-	router.HandleFunc("/subjects", handler.FetchSubjects).Methods("GET")
-	router.HandleFunc("/subject", handler.GetSubjectByID).Methods("GET")
-	router.HandleFunc("/subject", handler.InsertSubject).Methods("POST")
-	router.HandleFunc("/subject", handler.UpdateSubject).Methods("PUT")
-	router.HandleFunc("/subject", handler.DeleteSubject).Methods("DELETE")
+	router.HandleFunc("/subjects", handler.ShowSubjects).Methods(http.MethodGet)
+	router.HandleFunc("/subject", handler.CreateSubject).Methods(http.MethodPost)
+	router.HandleFunc("/subject/{id}", handler.GetSubjectByID).Methods(http.MethodGet)
+	router.HandleFunc("/subject/{id}", handler.UpdateSubject).Methods(http.MethodPut)
+	router.HandleFunc("/subject/{id}", handler.RemoveSubject).Methods(http.MethodDelete)
 }
 
-func (s *SubjectHandler) FetchSubjects(w http.ResponseWriter, r *http.Request) {
-	rawData, err := s.SUseCase.Fetch()
-	error2.PrintlnErr(err)
-	//var resp = response.Response{Msg: "Data Subject", Data: getAll(db)}
-	data, err := json.Marshal(rawData)
+func (s *SubjectHandler) ShowSubjects(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
+	data, err := s.SUseCase.Fetch()
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("ShowSubjects Failed", http.StatusNotFound, err.Error())
 	} else {
-		w.Header().Set("content-type", "application/json")
-		w.Write(data)
-		log.Println("Endpoint hit: FetchSubjects")
+		log.Println("Endpoint hit: ShowSubjects")
+		resp = msgJson.Response("Subjects Data", http.StatusOK, data)
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
 func (s *SubjectHandler) GetSubjectByID(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
 	id := varMux.GetVarsMux("id", r)
-	rawData, err := s.SUseCase.GetByID(id)
-	// resp := response.Response{Msg: "Data Subject By ID", Data: getByID(db, id)}
-	data, err := json.Marshal(rawData)
+	data, err := s.SUseCase.GetByID(id)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("GetSubjectByID Failed", http.StatusNotFound, err.Error())
 	} else {
-		w.Header().Set("content-type", "application/json")
-		w.Write(data)
 		log.Println("Endpoint hit: GetSubjectByID")
+		resp = msgJson.Response("Subject Data", http.StatusOK, data)
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
-func (s *SubjectHandler) InsertSubject(w http.ResponseWriter, r *http.Request) {
-	var sus []models.Subject
-	err := json.NewDecoder(r.Body).Decode(&sus)
-	error2.PrintlnErr(err)
-	for _, ss := range sus {
-		err := s.SUseCase.Store(ss)
-		error2.PrintlnErr(err)
-	}
+func (s *SubjectHandler) CreateSubject(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
+	var subject *models.Subject
+	err := json.NewDecoder(r.Body).Decode(&subject)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
 	} else {
-		log.Println("Insert successful")
-		w.Write([]byte("Insert successful"))
+		err = s.SUseCase.Store(subject)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("CreateSubject failed", http.StatusBadRequest, err.Error())
+		} else {
+			log.Println("Endpoint hit: CreateSubject")
+			resp = msgJson.Response("CreateSubject success", http.StatusCreated, "Insert success")
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
-func (s *SubjectHandler) DeleteSubject(w http.ResponseWriter, r *http.Request) {
-	err := s.SUseCase.Delete(r.URL.Query().Get("id"))
-	if err != nil {
+func (s *SubjectHandler) RemoveSubject(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
+	id := varMux.GetVarsMux("id", r)
+	if _, err := s.SUseCase.GetByID(id); err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
 	} else {
-		log.Println("Delete successful")
-		w.Write([]byte("Delete successful"))
+		err := s.SUseCase.Delete(id)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+		} else {
+			log.Println("Endpoint hit: RemoveSubject")
+			resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
 func (s *SubjectHandler) UpdateSubject(w http.ResponseWriter, r *http.Request) {
-	var sus models.Subject
-	err := json.NewDecoder(r.Body).Decode(&sus)
-	error2.PrintlnErr(err)
-	err = s.SUseCase.Update(sus)
+	var resp *msgJson.ResponseMessage
+	var subject *models.Subject
+	err := json.NewDecoder(r.Body).Decode(&subject)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
 	} else {
-		log.Println("Update successful")
-		w.Write([]byte("Update successful"))
+		id := varMux.GetVarsMux("id", r)
+		_, err := s.SUseCase.GetByID(id)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+		} else {
+			err = s.SUseCase.Update(id, subject)
+			if err != nil {
+				log.Println(err)
+				resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+			} else {
+				log.Println("Endpoint hit: UpdateSubject")
+				resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+			}
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }

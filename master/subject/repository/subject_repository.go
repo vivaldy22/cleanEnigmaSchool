@@ -8,7 +8,7 @@ import (
 )
 
 type subjectRepo struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 func NewSubjectRepo(db *sql.DB) models.SubjectRepository {
@@ -17,7 +17,7 @@ func NewSubjectRepo(db *sql.DB) models.SubjectRepository {
 
 func (s subjectRepo) Fetch() ([]*models.Subject, error) {
 	var subjects []*models.Subject
-	rows, err := s.DB.Query(`SELECT * FROM subject`)
+	rows, err := s.db.Query(`SELECT * FROM subject`)
 	if err != nil {
 		return nil, err
 	}
@@ -37,22 +37,22 @@ func (s subjectRepo) Fetch() ([]*models.Subject, error) {
 	return subjects, nil
 }
 
-func (s subjectRepo) GetByID(id string) (models.Subject, error) {
-	var subject models.Subject
-	err := s.DB.QueryRow("SELECT id, subject_name FROM subject WHERE id = ?", id).Scan(&subject.ID, &subject.SubjectName)
+func (s subjectRepo) GetByID(id string) (*models.Subject, error) {
+	var subject = new(models.Subject)
+	err := s.db.QueryRow("SELECT * FROM subject WHERE id = ?", id).Scan(&subject.ID, &subject.SubjectName)
 	if err != nil {
 		return subject, err
 	}
 	return subject, nil
 }
 
-func (s subjectRepo) Store(subject models.Subject) error {
-	tx, err := s.DB.Begin()
+func (s subjectRepo) Store(subject *models.Subject) error {
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO subject VALUES (?, ?, ?, ?)")
+	stmt, err := tx.Prepare("INSERT INTO subject VALUES (?, ?)")
 	if err != nil {
 		return err
 	}
@@ -66,8 +66,8 @@ func (s subjectRepo) Store(subject models.Subject) error {
 	return tx.Commit()
 }
 
-func (s subjectRepo) Update(subject models.Subject) error {
-	tx, err := s.DB.Begin()
+func (s subjectRepo) Update(id string, subject *models.Subject) error {
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (s subjectRepo) Update(subject models.Subject) error {
 		return err
 	}
 
-	_, err = stmt.Exec(subject.SubjectName, subject.ID)
+	_, err = stmt.Exec(subject.SubjectName, id)
 	if err != nil {
 		return tx.Rollback()
 	}
@@ -89,7 +89,7 @@ func (s subjectRepo) Update(subject models.Subject) error {
 }
 
 func (s subjectRepo) Delete(id string) error {
-	tx, err := s.DB.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}

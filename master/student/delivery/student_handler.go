@@ -7,13 +7,9 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
-	_error "github.com/vivaldy22/cleanEnigmaSchool/tools/errors"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/msgJson"
 	"github.com/vivaldy22/cleanEnigmaSchool/tools/varMux"
 )
-
-type ResponseError struct {
-	Message string `json:"message"`
-}
 
 type StudentHandler struct {
 	StUseCase models.StudentUseCase
@@ -21,81 +17,101 @@ type StudentHandler struct {
 
 func NewStudentHandler(tu models.StudentUseCase, router *mux.Router) {
 	handler := &StudentHandler{StUseCase: tu}
-	router.HandleFunc("/students", handler.FetchStudents).Methods("GET")
-	router.HandleFunc("/student", handler.GetStudentByID).Methods("GET")
-	router.HandleFunc("/student", handler.InsertStudent).Methods("POST")
-	router.HandleFunc("/student", handler.UpdateStudent).Methods("PUT")
-	router.HandleFunc("/student", handler.DeleteStudent).Methods("DELETE")
+	router.HandleFunc("/students", handler.FetchStudents).Methods(http.MethodGet)
+	router.HandleFunc("/student", handler.InsertStudent).Methods(http.MethodPost)
+	router.HandleFunc("/student/{id}", handler.GetStudentByID).Methods(http.MethodGet)
+	router.HandleFunc("/student/{id}", handler.UpdateStudent).Methods(http.MethodPut)
+	router.HandleFunc("/student/{id}", handler.RemoveStudent).Methods(http.MethodDelete)
 }
 
 func (s *StudentHandler) FetchStudents(w http.ResponseWriter, r *http.Request) {
-	rawData, err := s.StUseCase.Fetch()
-	_error.PrintlnErr(err)
-	//var resp = response.Response{Msg: "Data Student", Data: getAll(db)}
-	data, err := json.Marshal(rawData)
+	var resp *msgJson.ResponseMessage
+	data, err := s.StUseCase.Fetch()
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("ShowStudents Failed", http.StatusNotFound, err.Error())
 	} else {
-		w.Header().Set("content-type", "application/json")
-		w.Write(data)
 		log.Println("Endpoint hit: FetchStudents")
+		resp = msgJson.Response("Students Data", http.StatusOK, data)
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
 func (s *StudentHandler) GetStudentByID(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
 	id := varMux.GetVarsMux("id", r)
-	rawData, err := s.StUseCase.GetByID(id)
-	// resp := response.Response{Msg: "Data Student By ID", Data: getByID(db, id)}
-	data, err := json.Marshal(rawData)
+	data, err := s.StUseCase.GetByID(id)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("GetStudentByID Failed", http.StatusNotFound, err.Error())
 	} else {
-		w.Header().Set("content-type", "application/json")
-		w.Write(data)
 		log.Println("Endpoint hit: GetStudentByID")
+		resp = msgJson.Response("Student Data", http.StatusOK, data)
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
 func (s *StudentHandler) InsertStudent(w http.ResponseWriter, r *http.Request) {
-	var sts []models.Student
-	err := json.NewDecoder(r.Body).Decode(&sts)
-	_error.PrintlnErr(err)
-	for _, ss := range sts {
-		err := s.StUseCase.Store(ss)
-		_error.PrintlnErr(err)
-	}
+	var resp *msgJson.ResponseMessage
+	var student *models.Student
+	err := json.NewDecoder(r.Body).Decode(&student)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
 	} else {
-		log.Println("Insert successful")
-		w.Write([]byte("Insert successful"))
+		err = s.StUseCase.Store(student)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("CreateStudent failed", http.StatusBadRequest, err.Error())
+		} else {
+			log.Println("Endpoint hit: CreateStudent")
+			resp = msgJson.Response("CreateStudent success", http.StatusCreated, "Insert success")
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
-func (s *StudentHandler) DeleteStudent(w http.ResponseWriter, r *http.Request) {
-	err := s.StUseCase.Delete(r.URL.Query().Get("id"))
-	if err != nil {
+func (s *StudentHandler) RemoveStudent(w http.ResponseWriter, r *http.Request) {
+	var resp *msgJson.ResponseMessage
+	id := varMux.GetVarsMux("id", r)
+	if _, err := s.StUseCase.GetByID(id); err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
 	} else {
-		log.Println("Delete successful")
-		w.Write([]byte("Delete successful"))
+		err := s.StUseCase.Delete(id)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+		} else {
+			log.Println("Endpoint hit: RemoveStudent")
+			resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }
 
 func (s *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
-	var ss models.Student
-	err := json.NewDecoder(r.Body).Decode(&ss)
-	_error.PrintlnErr(err)
-	err = s.StUseCase.Update(ss)
+	var resp *msgJson.ResponseMessage
+	var student *models.Student
+	err := json.NewDecoder(r.Body).Decode(&student)
 	if err != nil {
 		log.Println(err)
-		w.Write([]byte("Error occurred"))
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
 	} else {
-		log.Println("Update successful")
-		w.Write([]byte("Update successful"))
+		id := varMux.GetVarsMux("id", r)
+		if _, err := s.StUseCase.GetByID(id); err != nil {
+			log.Println(err)
+			resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+		} else {
+			err = s.StUseCase.Update(id, student)
+			if err != nil {
+				log.Println(err)
+				resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+			} else {
+				log.Println("Endpoint hit: UpdateStudent")
+				resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+			}
+		}
 	}
+	msgJson.WriteJSON(resp, w)
 }

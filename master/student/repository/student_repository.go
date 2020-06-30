@@ -8,7 +8,7 @@ import (
 )
 
 type studentRepo struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 func NewStudentRepo(db *sql.DB) models.StudentRepository {
@@ -17,7 +17,7 @@ func NewStudentRepo(db *sql.DB) models.StudentRepository {
 
 func (s studentRepo) Fetch() ([]*models.Student, error) {
 	var students []*models.Student
-	rows, err := s.DB.Query(`SELECT * FROM student`)
+	rows, err := s.db.Query(`SELECT * FROM student`)
 	if err != nil {
 		return nil, err
 	}
@@ -37,17 +37,17 @@ func (s studentRepo) Fetch() ([]*models.Student, error) {
 	return students, nil
 }
 
-func (s studentRepo) GetByID(id string) (models.Student, error) {
-	var student models.Student
-	err := s.DB.QueryRow("SELECT id, first_name, last_name, email FROM student WHERE id = ?", id).Scan(&student.ID, &student.FirstName, &student.LastName, &student.Email)
+func (s studentRepo) GetByID(id string) (*models.Student, error) {
+	var student = new(models.Student)
+	err := s.db.QueryRow("SELECT id, first_name, last_name, email FROM student WHERE id = ?", id).Scan(&student.ID, &student.FirstName, &student.LastName, &student.Email)
 	if err != nil {
 		return student, err
 	}
 	return student, nil
 }
 
-func (s studentRepo) Store(student models.Student) error {
-	tx, err := s.DB.Begin()
+func (s studentRepo) Store(student *models.Student) error {
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -66,8 +66,8 @@ func (s studentRepo) Store(student models.Student) error {
 	return tx.Commit()
 }
 
-func (s studentRepo) Update(student models.Student) error {
-	tx, err := s.DB.Begin()
+func (s studentRepo) Update(id string, student *models.Student) error {
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (s studentRepo) Update(student models.Student) error {
 		return err
 	}
 
-	_, err = stmt.Exec(student.FirstName, student.LastName, student.Email, student.ID)
+	_, err = stmt.Exec(student.FirstName, student.LastName, student.Email, id)
 	if err != nil {
 		return tx.Rollback()
 	}
@@ -89,7 +89,7 @@ func (s studentRepo) Update(student models.Student) error {
 }
 
 func (s studentRepo) Delete(id string) error {
-	tx, err := s.DB.Begin()
+	tx, err := s.db.Begin()
 	if err != nil {
 		return err
 	}

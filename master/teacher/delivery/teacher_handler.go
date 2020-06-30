@@ -74,13 +74,18 @@ func (t *TeacherHandler) CreateTeacher(w http.ResponseWriter, r *http.Request) {
 func (t *TeacherHandler) RemoveTeacher(w http.ResponseWriter, r *http.Request) {
 	var resp *msgJson.ResponseMessage
 	id := varMux.GetVarsMux("id", r)
-	err := t.TUseCase.Delete(id)
-	if err != nil {
+	if _, err := t.TUseCase.GetByID(id); err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
 	} else {
-		log.Println("Endpoint hit: RemoveTeacher")
-		resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+		err := t.TUseCase.Delete(id)
+		if err != nil {
+			log.Println(err)
+			resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+		} else {
+			log.Println("Endpoint hit: RemoveTeacher")
+			resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+		}
 	}
 	msgJson.WriteJSON(resp, w)
 }
@@ -94,13 +99,18 @@ func (t *TeacherHandler) UpdateTeacher(w http.ResponseWriter, r *http.Request) {
 		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
 	} else {
 		id := varMux.GetVarsMux("id", r)
-		err = t.TUseCase.Update(id, teacher)
-		if err != nil {
+		if _, err := t.TUseCase.GetByID(id); err != nil {
 			log.Println(err)
-			resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+			resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
 		} else {
-			log.Println("Endpoint hit: UpdateTeacher")
-			resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+			err = t.TUseCase.Update(id, teacher)
+			if err != nil {
+				log.Println(err)
+				resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+			} else {
+				log.Println("Endpoint hit: UpdateTeacher")
+				resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+			}
 		}
 	}
 	msgJson.WriteJSON(resp, w)

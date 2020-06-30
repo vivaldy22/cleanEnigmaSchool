@@ -20,7 +20,7 @@ func (s studentUseCase) Fetch() ([]*models.Student, error) {
 	return res, nil
 }
 
-func (s studentUseCase) GetByID(id string) (models.Student, error) {
+func (s studentUseCase) GetByID(id string) (*models.Student, error) {
 	res, err := s.studentRepo.GetByID(id)
 	if err != nil {
 		return res, err
@@ -28,14 +28,23 @@ func (s studentUseCase) GetByID(id string) (models.Student, error) {
 	return res, nil
 }
 
-func (s studentUseCase) Store(student models.Student) error {
-	return s.studentRepo.Store(student)
+func (s studentUseCase) Store(student *models.Student) error {
+	if err := s.studentRepo.Store(student); err != nil {
+		return err
+	}
+	return nil
 }
 
-func (s studentUseCase) Update(student models.Student) error {
-	return s.studentRepo.Update(student)
+func (s studentUseCase) Update(id string, student *models.Student) error {
+	if err := s.studentRepo.Update(id, student); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s studentUseCase) Delete(id string) error {
-	return s.studentRepo.Delete(id)
+	if err := s.studentRepo.Delete(id); err != nil {
+		return err
+	}
+	return nil
 }
