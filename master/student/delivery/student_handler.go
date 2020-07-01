@@ -29,10 +29,10 @@ func (s *StudentHandler) FetchStudents(w http.ResponseWriter, r *http.Request) {
 	data, err := s.StUseCase.Fetch()
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("ShowStudents Failed", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("ShowStudents Failed", http.StatusNotFound, nil, err)
 	} else {
 		log.Println("Endpoint hit: FetchStudents")
-		resp = msgJson.Response("Students Data", http.StatusOK, data)
+		resp = msgJson.Response("Students Data", http.StatusOK, data, nil)
 	}
 	msgJson.WriteJSON(resp, w)
 }
@@ -43,10 +43,10 @@ func (s *StudentHandler) GetStudentByID(w http.ResponseWriter, r *http.Request) 
 	data, err := s.StUseCase.GetByID(id)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("GetStudentByID Failed", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("GetStudentByID Failed", http.StatusNotFound, nil, err)
 	} else {
 		log.Println("Endpoint hit: GetStudentByID")
-		resp = msgJson.Response("Student Data", http.StatusOK, data)
+		resp = msgJson.Response("Student Data", http.StatusOK, data, nil)
 	}
 	msgJson.WriteJSON(resp, w)
 }
@@ -57,15 +57,15 @@ func (s *StudentHandler) InsertStudent(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&student)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, nil, err)
 	} else {
 		err = s.StUseCase.Store(student)
 		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("CreateStudent failed", http.StatusBadRequest, err.Error())
+			resp = msgJson.Response("CreateStudent failed", http.StatusBadRequest, nil, err)
 		} else {
 			log.Println("Endpoint hit: CreateStudent")
-			resp = msgJson.Response("CreateStudent success", http.StatusCreated, "Insert success")
+			resp = msgJson.Response("CreateStudent success", http.StatusCreated, student, nil)
 		}
 	}
 	msgJson.WriteJSON(resp, w)
@@ -74,17 +74,18 @@ func (s *StudentHandler) InsertStudent(w http.ResponseWriter, r *http.Request) {
 func (s *StudentHandler) RemoveStudent(w http.ResponseWriter, r *http.Request) {
 	var resp *msgJson.ResponseMessage
 	id := varMux.GetVarsMux("id", r)
-	if _, err := s.StUseCase.GetByID(id); err != nil {
+	data, err := s.StUseCase.GetByID(id)
+	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("Data not found", http.StatusNotFound, nil, err)
 	} else {
 		err := s.StUseCase.Delete(id)
 		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+			resp = msgJson.Response("Delete failed", http.StatusNotFound, nil, err)
 		} else {
 			log.Println("Endpoint hit: RemoveStudent")
-			resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+			resp = msgJson.Response("Delete success", http.StatusOK, data, nil)
 		}
 	}
 	msgJson.WriteJSON(resp, w)
@@ -96,20 +97,21 @@ func (s *StudentHandler) UpdateStudent(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&student)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, nil, err)
 	} else {
 		id := varMux.GetVarsMux("id", r)
-		if _, err := s.StUseCase.GetByID(id); err != nil {
+		data, err := s.StUseCase.GetByID(id)
+		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+			resp = msgJson.Response("Data not found", http.StatusNotFound, nil, err)
 		} else {
 			err = s.StUseCase.Update(id, student)
 			if err != nil {
 				log.Println(err)
-				resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+				resp = msgJson.Response("Update failed", http.StatusNotFound, nil, err)
 			} else {
 				log.Println("Endpoint hit: UpdateStudent")
-				resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+				resp = msgJson.Response("Update success", http.StatusOK, data, nil)
 			}
 		}
 	}

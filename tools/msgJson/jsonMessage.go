@@ -2,6 +2,7 @@ package msgJson
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -11,7 +12,10 @@ type ResponseMessage struct {
 	Result  interface{}
 }
 
-func Response(m string, c int, r interface{}) *ResponseMessage {
+func Response(m string, c int, r interface{}, err error) *ResponseMessage {
+	if err != nil {
+		log.Println(err)
+	}
 	return &ResponseMessage{http.StatusText(c), m, r}
 }
 

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/queries"
 )
 
 type studentRepo struct {
@@ -17,7 +18,7 @@ func NewStudentRepo(db *sql.DB) models.StudentRepository {
 
 func (s studentRepo) Fetch() ([]*models.Student, error) {
 	var students []*models.Student
-	rows, err := s.db.Query(`SELECT * FROM student`)
+	rows, err := s.db.Query(queries.SELECT_ALL_STUDENT)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (s studentRepo) Fetch() ([]*models.Student, error) {
 
 func (s studentRepo) GetByID(id string) (*models.Student, error) {
 	var student = new(models.Student)
-	err := s.db.QueryRow("SELECT id, first_name, last_name, email FROM student WHERE id = ?", id).Scan(&student.ID, &student.FirstName, &student.LastName, &student.Email)
+	err := s.db.QueryRow(queries.SELECT_STUDENT_ID, id).Scan(&student.ID, &student.FirstName, &student.LastName, &student.Email)
 	if err != nil {
 		return student, err
 	}
@@ -52,7 +53,7 @@ func (s studentRepo) Store(student *models.Student) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO student VALUES (?, ?, ?, ?)")
+	stmt, err := tx.Prepare(queries.INSERT_STUDENT)
 	if err != nil {
 		return err
 	}
@@ -72,9 +73,7 @@ func (s studentRepo) Update(id string, student *models.Student) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`UPDATE student
-									SET first_name = ?, last_name = ?, email = ?
-									WHERE id = ?`)
+	stmt, err := tx.Prepare(queries.UPDATE_STUDENT)
 	if err != nil {
 		return err
 	}
@@ -94,7 +93,7 @@ func (s studentRepo) Delete(id string) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("DELETE FROM student WHERE id = ?")
+	stmt, err := tx.Prepare(queries.DELETE_STUDENT_ID)
 	if err != nil {
 		return err
 	}

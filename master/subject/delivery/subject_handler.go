@@ -29,10 +29,10 @@ func (s *SubjectHandler) ShowSubjects(w http.ResponseWriter, r *http.Request) {
 	data, err := s.SUseCase.Fetch()
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("ShowSubjects Failed", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("ShowSubjects Failed", http.StatusNotFound, nil, err)
 	} else {
 		log.Println("Endpoint hit: ShowSubjects")
-		resp = msgJson.Response("Subjects Data", http.StatusOK, data)
+		resp = msgJson.Response("Subjects Data", http.StatusOK, data, nil)
 	}
 	msgJson.WriteJSON(resp, w)
 }
@@ -43,10 +43,10 @@ func (s *SubjectHandler) GetSubjectByID(w http.ResponseWriter, r *http.Request) 
 	data, err := s.SUseCase.GetByID(id)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("GetSubjectByID Failed", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("GetSubjectByID Failed", http.StatusNotFound, nil, err)
 	} else {
 		log.Println("Endpoint hit: GetSubjectByID")
-		resp = msgJson.Response("Subject Data", http.StatusOK, data)
+		resp = msgJson.Response("Subject Data", http.StatusOK, data, nil)
 	}
 	msgJson.WriteJSON(resp, w)
 }
@@ -57,15 +57,15 @@ func (s *SubjectHandler) CreateSubject(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&subject)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, nil, err)
 	} else {
 		err = s.SUseCase.Store(subject)
 		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("CreateSubject failed", http.StatusBadRequest, err.Error())
+			resp = msgJson.Response("CreateSubject failed", http.StatusBadRequest, nil, err)
 		} else {
 			log.Println("Endpoint hit: CreateSubject")
-			resp = msgJson.Response("CreateSubject success", http.StatusCreated, "Insert success")
+			resp = msgJson.Response("CreateSubject success", http.StatusCreated, subject, nil)
 		}
 	}
 	msgJson.WriteJSON(resp, w)
@@ -74,17 +74,18 @@ func (s *SubjectHandler) CreateSubject(w http.ResponseWriter, r *http.Request) {
 func (s *SubjectHandler) RemoveSubject(w http.ResponseWriter, r *http.Request) {
 	var resp *msgJson.ResponseMessage
 	id := varMux.GetVarsMux("id", r)
-	if _, err := s.SUseCase.GetByID(id); err != nil {
+	data, err := s.SUseCase.GetByID(id)
+	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+		resp = msgJson.Response("Data not found", http.StatusNotFound, nil, err)
 	} else {
 		err := s.SUseCase.Delete(id)
 		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("Delete failed", http.StatusNotFound, err.Error())
+			resp = msgJson.Response("Delete failed", http.StatusNotFound, nil, err)
 		} else {
 			log.Println("Endpoint hit: RemoveSubject")
-			resp = msgJson.Response("Delete success", http.StatusOK, "Delete success")
+			resp = msgJson.Response("Delete success", http.StatusOK, data, nil)
 		}
 	}
 	msgJson.WriteJSON(resp, w)
@@ -96,21 +97,21 @@ func (s *SubjectHandler) UpdateSubject(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&subject)
 	if err != nil {
 		log.Println(err)
-		resp = msgJson.Response("Decode failed", http.StatusBadRequest, err.Error())
+		resp = msgJson.Response("Decode failed", http.StatusBadRequest, nil, err)
 	} else {
 		id := varMux.GetVarsMux("id", r)
-		_, err := s.SUseCase.GetByID(id)
+		data, err := s.SUseCase.GetByID(id)
 		if err != nil {
 			log.Println(err)
-			resp = msgJson.Response("Data not found", http.StatusNotFound, err.Error())
+			resp = msgJson.Response("Data not found", http.StatusNotFound, nil, err)
 		} else {
 			err = s.SUseCase.Update(id, subject)
 			if err != nil {
 				log.Println(err)
-				resp = msgJson.Response("Update failed", http.StatusNotFound, err.Error())
+				resp = msgJson.Response("Update failed", http.StatusNotFound, nil, err)
 			} else {
 				log.Println("Endpoint hit: UpdateSubject")
-				resp = msgJson.Response("Update success", http.StatusOK, "Update success")
+				resp = msgJson.Response("Update success", http.StatusOK, data, nil)
 			}
 		}
 	}

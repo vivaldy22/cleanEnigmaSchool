@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/queries"
 )
 
 type teacherRepo struct {
@@ -17,7 +18,7 @@ func NewTeacherRepo(db *sql.DB) models.TeacherRepository {
 
 func (t teacherRepo) Fetch() ([]*models.Teacher, error) {
 	var teachers []*models.Teacher
-	rows, err := t.db.Query(`SELECT * FROM teacher`)
+	rows, err := t.db.Query(queries.SELECT_ALL_TEACHER)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (t teacherRepo) Fetch() ([]*models.Teacher, error) {
 
 func (t teacherRepo) GetByID(id string) (*models.Teacher, error) {
 	var teacher = new(models.Teacher)
-	err := t.db.QueryRow("SELECT * FROM teacher WHERE id = ?", id).Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email)
+	err := t.db.QueryRow(queries.SELECT_TEACHER_ID, id).Scan(&teacher.ID, &teacher.FirstName, &teacher.LastName, &teacher.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -52,12 +53,13 @@ func (t teacherRepo) Store(teacher *models.Teacher) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO teacher VALUES (?, ?, ?, ?)")
+	stmt, err := tx.Prepare(queries.INSERT_TEACHER)
 	if err != nil {
 		return err
 	}
 
-	_, err = stmt.Exec(uuid.New(), teacher.FirstName, teacher.LastName, teacher.Email)
+	teacher.ID = uuid.New().String()
+	_, err = stmt.Exec(teacher.ID, teacher.FirstName, teacher.LastName, teacher.Email)
 	if err != nil {
 		return tx.Rollback()
 	}
@@ -72,9 +74,7 @@ func (t teacherRepo) Update(id string, teacher *models.Teacher) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`UPDATE teacher
-									SET first_name = ?, last_name = ?, email = ?
-									WHERE id = ?`)
+	stmt, err := tx.Prepare(queries.UPDATE_TEACHER)
 	if err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (t teacherRepo) Delete(id string) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("DELETE FROM teacher WHERE id = ?")
+	stmt, err := tx.Prepare(queries.DELETE_TEACHER_ID)
 	if err != nil {
 		return err
 	}

@@ -5,6 +5,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vivaldy22/cleanEnigmaSchool/models"
+	"github.com/vivaldy22/cleanEnigmaSchool/tools/queries"
 )
 
 type subjectRepo struct {
@@ -17,7 +18,7 @@ func NewSubjectRepo(db *sql.DB) models.SubjectRepository {
 
 func (s subjectRepo) Fetch() ([]*models.Subject, error) {
 	var subjects []*models.Subject
-	rows, err := s.db.Query(`SELECT * FROM subject`)
+	rows, err := s.db.Query(queries.SELECT_ALL_SUBJECT)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (s subjectRepo) Fetch() ([]*models.Subject, error) {
 
 func (s subjectRepo) GetByID(id string) (*models.Subject, error) {
 	var subject = new(models.Subject)
-	err := s.db.QueryRow("SELECT * FROM subject WHERE id = ?", id).Scan(&subject.ID, &subject.SubjectName)
+	err := s.db.QueryRow(queries.SELECT_SUBJECT_ID, id).Scan(&subject.ID, &subject.SubjectName)
 	if err != nil {
 		return subject, err
 	}
@@ -52,7 +53,7 @@ func (s subjectRepo) Store(subject *models.Subject) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("INSERT INTO subject VALUES (?, ?)")
+	stmt, err := tx.Prepare(queries.INSERT_SUBJECT)
 	if err != nil {
 		return err
 	}
@@ -72,9 +73,7 @@ func (s subjectRepo) Update(id string, subject *models.Subject) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare(`UPDATE subject
-									SET subject_name = ?
-									WHERE id = ?`)
+	stmt, err := tx.Prepare(queries.UPDATE_SUBJECT)
 	if err != nil {
 		return err
 	}
@@ -94,7 +93,7 @@ func (s subjectRepo) Delete(id string) error {
 		return err
 	}
 
-	stmt, err := tx.Prepare("DELETE FROM subject WHERE id = ?")
+	stmt, err := tx.Prepare(queries.DELETE_SUBJECT_ID)
 	if err != nil {
 		return err
 	}
