@@ -3,10 +3,13 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/vivaldy22/cleanEnigmaSchool/configs"
 )
 
 func main() {
+	fmt.Println("Hello World")
 	db := configs.InitDB()
 	router := configs.CreateRouter()
 	configs.InitRouters(db, router)
